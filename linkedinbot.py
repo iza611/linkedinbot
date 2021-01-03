@@ -6,10 +6,11 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 import urllib.request
 import os
+import time
 
 allEpisodes = []
-courseLink = 'https://www.linkedin.com/learning/blockchain-basics/welcome-and-introduction'
-parentDirectory = '/Users/ozogiz01/OneDrive - StepStone Group/Documents/LinkedIn Premium/test/'
+courseLink = 'https://www.linkedin.com/learning/mistakes-you-should-avoid-at-work/boost-your-career-by-avoiding-key-mistakes'
+parentDirectory = '/Users/ozogiz01/OneDrive - StepStone Group/Documents/LinkedIn Premium/Mistakes You Should Avoid at Work/'
 
 
 # 1. prep
@@ -44,59 +45,68 @@ qualityOptions[len(qualityOptions)-1].click()
 
 # 2. collect data into allEpisodes array
 
-# create folders 
-contentsListNames = browser.find_elements_by_class_name('classroom-toc-chapter__toggle-title')
+# create folders d
+chaptersList = browser.find_elements_by_class_name('classroom-toc-chapter__toggle-title')
 directories = []
-for x in range (len(contentsListNames)):
-    directories.insert(len(directories), contentsListNames[x].text)
+for x in range (len(chaptersList)):
+    directories.insert(len(directories), chaptersList[x].text)
 for x in range (len(directories)):
     path = parentDirectory + directories[x]
     os.mkdir(path)
     print("\'" + directories[x] + "\'" + ' folder created')
+print('directories array:')
+print(directories)
 
-# open each chapter and save (links & titles & folder num) for each episodes
+# open each chapter and save (links & titles & folder num) for each episodes    
+def closeAllChaptersContent():
+    chaptersListButtons = browser.find_elements_by_class_name('btn-inverse-link')
+    for x in range(len(chaptersListButtons)):
+        if chaptersListButtons[x].get_attribute('aria-expanded') == 'true':
+            chaptersListButtons[x].click()
+        
+def openNextChapterContent(chapter):
+    closeAllChaptersContent()
+    chaptersListButtons = browser.find_elements_by_class_name('btn-inverse-link')
+    chaptersListButtons[chapter].click()
+    time.sleep(5)
+
 def getEpisodesFromCurrentlyOpenedChapter(chapter):
     episodesLinks = browser.find_elements_by_class_name('classroom-toc-item__link')
     episodesTitles = browser.find_elements_by_class_name('classroom-toc-item__title')
     quiz = 'quiz'
     Quiz = 'Quiz'
+    slash = '/'
     for x in range (len(episodesLinks)):
         episodeLink = episodesLinks[x].get_attribute('href')
         episodeTitle = episodesTitles[x].text
         if episodeTitle.endswith('(Viewed)'):
             episodeTitle = episodeTitle[:-8]
+        if episodeTitle.endswith('(In progress)'):
+            episodeTitle = episodeTitle[:-13]
+        if slash in episodeTitle:
+            episodeTitle = 'slash in ch' + str(chapter) + 'e' + str(x)
         episodeTitle = episodeTitle.replace('\n','')
         if quiz not in episodeLink and Quiz not in episodeTitle:
             allEpisodes.insert(len(allEpisodes), [episodeLink, str(x+1) + '. ' + episodeTitle + '.mp4', chapter, 'null'])
-    
 
-def openNextChapterContent():
-    contentsList = browser.find_elements_by_class_name('btn-inverse-link')
-    for x in range (len(contentsList)-1):
-        if contentsList[x].get_attribute('aria-expanded') == 'true':
-            contentsList[x].click()
-            contentsList[x+1].click()
-            return x+1
-
-getEpisodesFromCurrentlyOpenedChapter(0)
-for x in range (len(contentsListNames)-1):
-    chapter = openNextChapterContent()
-    getEpisodesFromCurrentlyOpenedChapter(chapter)
+for x in range (len(chaptersList)):
+    openNextChapterContent(x)
+    getEpisodesFromCurrentlyOpenedChapter(x)
 
 # save api for all videos that will be used for downloading 
 def saveSingleVideoApi(x):
     video = browser.find_element_by_class_name('vjs-tech')
     src = video.get_attribute('src')
     allEpisodes[x][3] = src
+    print(allEpisodes[x])
 
 def saveAllVideosApis():
     for x in range (len(allEpisodes)):
         browser.get(allEpisodes[x][0])
         saveSingleVideoApi(x)
+        time.sleep(5)
 
 saveAllVideosApis()
-print(allEpisodes)
-
 
 # 3. download
 
