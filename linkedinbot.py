@@ -9,8 +9,8 @@ import os
 import time
 
 allEpisodes = []
-courseLink = 'https://www.linkedin.com/learning/mistakes-you-should-avoid-at-work/boost-your-career-by-avoiding-key-mistakes'
-parentDirectory = '/Users/ozogiz01/OneDrive - StepStone Group/Documents/LinkedIn Premium/Mistakes You Should Avoid at Work/'
+courseLink = ''
+parentDirectory = ''
 
 
 # 1. prep
@@ -25,7 +25,7 @@ signinButton.click()
 
 # type email
 email = browser.find_element_by_id('auth-id-input')
-email.send_keys('fotoluminescencja@gmail.com')
+email.send_keys('x@gmail.com')
 continueButton = browser.find_element_by_id('auth-id-button')
 continueButton.click()
 
